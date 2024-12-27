@@ -1,5 +1,7 @@
 # 🌈 Unix Inventory Management System 🌟
 
+[Inventory.live.webapp](https://prajwalks05.github.io/Unix_inventory_management_system/)
+
 Welcome to the **Unix Inventory Management System**! 🎉 This web application may look static at first glance, but the real functionality is unlocked when the accompanying shell script is executed. The project showcases an interactive inventory system where changes to inventory are reflected through shell script execution. 📦
 
 ## ✨ Features:
