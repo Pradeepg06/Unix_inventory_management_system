@@ -9,12 +9,19 @@ display_inventory() {
         return
     fi
     
-    inventory=$(awk -F "|" '{printf "Name: %s\nPrice: %s\nQuantity: %s\nExpiry Days: %s\nInventory Date: %s\nExpiry Date: %s\n\n", $1, $2, $3, $4, $5, $6}' $FILE)
+    inventory=$(awk -F "|" '{printf "Name: %s\nPrice: %s\nQuantity: %s\nExpiry Days: %s\nInventory Date: %s\nExpiry Date: %s\nCategory: %s\n\n", $1, $2, $3, $4, $5, $6, $7}' $FILE)
     zenity --text-info --title="Inventory Data" --filename=<(echo "$inventory") --width=600 --height=400
 }
 
 # Function to add a new product
 add_product() {
+    # Static categories
+    categories=("Dairy" "Bakery" "Grocery" "Fruits" "Meat")
+
+    # Ask the user to select a category from predefined categories
+    category=$(zenity --list --title="Select Category" --column="Category" "${categories[@]}")
+    [ $? -ne 0 ] && return  # If user clicks Cancel
+
     # Get product details using zenity --entry dialogs
     name=$(zenity --entry --title="Add Product" --text="Enter Product Name")
     [ $? -ne 0 ] && return  # If user clicks Cancel
@@ -55,7 +62,7 @@ add_product() {
     expiry_date=$(date -I -d "$inventory_date + $expiry_days days")
     
     # Append the new product to the file with proper format
-    echo "$name|$price|$quantity|$expiry_days|$inventory_date|$expiry_date" >> $FILE
+    echo "$name|$price|$quantity|$expiry_days|$inventory_date|$expiry_date|$category" >> $FILE
     
     # Notify user of success
     zenity --info --title="Success" --text="Product added successfully!"
@@ -80,6 +87,7 @@ update_product() {
     current_expiry_days=$(echo $current_line | cut -d '|' -f 4)
     current_inventory_date=$(echo $current_line | cut -d '|' -f 5)
     current_expiry_date=$(echo $current_line | cut -d '|' -f 6)
+    current_category=$(echo $current_line | cut -d '|' -f 7)
     
     # Get new details
     details=$(zenity --forms --title="Update Product" \
@@ -92,7 +100,7 @@ update_product() {
     quantity=$(echo "$details" | cut -d '|' -f 2)
     
     # Update the line
-    new_line="$product_name|$price|$quantity|$current_expiry_days|$current_inventory_date|$current_expiry_date"
+    new_line="$product_name|$price|$quantity|$current_expiry_days|$current_inventory_date|$current_expiry_date|$current_category"
     sed -i "/^$product_name|/c\\$new_line" $FILE
     zenity --info --title="Success" --text="Product updated successfully!"
 }

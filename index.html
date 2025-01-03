@@ -7,25 +7,35 @@
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        .card-title {
-            background-color: #007bff;
-            color: white;
-            padding: 10px;
-            margin: -1rem -1rem 1rem -1rem;
-            border-top-left-radius: 0.375rem;
-            border-top-right-radius: 0.375rem;
+        .category-header {
+            background-color: #f8f9fa;
+            padding: 15px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            border: 1px solid #dee2e6;
+            border-radius: 0.375rem;
+            margin-top: 20px;
+            margin-bottom: 20px; /* Added margin for spacing between cards and category */
+        }
+        
+        .product-name {
+            color: #007bff; /* Bootstrap primary color for product name */
+            font-size: 1.25rem;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
     <div class="container my-5">
         <h1 class="text-center mb-4">Supermarket Inventory</h1>
-        <div id="productCards" class="row"></div>
+
+        <!-- The categories and their products will be inserted dynamically here -->
+        <div id="categoryCards" class="row"></div>
     </div>
 
     <!-- Bootstrap JS Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    
+
     <script>
         // Function to fetch and parse the inventory file
         async function loadInventory() {
@@ -35,10 +45,10 @@
                 
                 const data = await response.text();
                 const products = parseInventory(data);
-                renderCards(products);
+                renderCategories(products);
             } catch (error) {
                 console.error('Error loading inventory:', error);
-                document.getElementById('productCards').innerHTML = 
+                document.getElementById('categoryCards').innerHTML = 
                     `<p class="text-danger">Failed to load inventory: ${error.message}</p>`;
             }
         }
@@ -57,28 +67,61 @@
             });
         }
 
-        // Function to render Bootstrap cards for products
-        function renderCards(products) {
-            const container = document.getElementById('productCards');
+        // Function to render categories with their product cards
+        function renderCategories(products) {
+            const container = document.getElementById('categoryCards');
+
+            // Group products by category
+            const categories = {};
+
             products.forEach(product => {
-                const card = document.createElement('div');
-                card.className = 'col-md-4 mb-4';
-                card.innerHTML = `
-                    <div class="card h-100 shadow">
-                        <div class="card-body">
-                            <h5 class="card-title">${product['product_name']}</h5>
-                            <ul class="list-group list-group-flush">
-                                <li class="list-group-item"><strong>Price:</strong> Rs.${product['price']}</li>
-                                <li class="list-group-item"><strong>Quantity:</strong> ${product['quantity']}</li>
-                                <li class="list-group-item"><strong>Expiry Days:</strong> ${product['expiry_days']}</li>
-                                <li class="list-group-item"><strong>Inventory Date:</strong> ${product['inventory_date']}</li>
-                                <li class="list-group-item"><strong>Expiry Date:</strong> ${product['expiry_date']}</li>
-                            </ul>
-                        </div>
-                    </div>
-                `;
-                container.appendChild(card);
+                if (!categories[product['category']]) {
+                    categories[product['category']] = [];
+                }
+                categories[product['category']].push(product);
             });
+
+            // For each category, create a section and display the products
+            for (const [category, items] of Object.entries(categories)) {
+                const categoryDiv = document.createElement('div');
+                categoryDiv.className = 'col-12';
+
+                // Add category heading
+                const categoryHeading = document.createElement('div');
+                categoryHeading.className = 'category-header';
+                categoryHeading.textContent = category;
+                categoryDiv.appendChild(categoryHeading);
+
+                // Add product cards
+                const productContainer = document.createElement('div');
+                productContainer.className = 'row';
+
+                items.forEach(product => {
+                    const cardDiv = document.createElement('div');
+                    cardDiv.className = 'col lg-3 mb-4 m-1';
+                    cardDiv.innerHTML = `
+                        <div class="card h-100 shadow">
+                            <div class="card-body">
+                                <h5 class="card-title bg-primary text-light product-name">${product['product_name']}</h5>
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item"><strong>Price:</strong> Rs.${product['price']}</li>
+                                    <li class="list-group-item"><strong>Quantity:</strong> ${product['quantity']}</li>
+                                    <li class="list-group-item"><strong>Expiry Days:</strong> ${product['expiry_days']}</li>
+                                    <li class="list-group-item"><strong>Inventory Date:</strong> ${product['inventory_date']}</li>
+                                    <li class="list-group-item"><strong>Expiry Date:</strong> ${product['expiry_date']}</li>
+                                </ul>
+                            </div>
+                        </div>
+                    `;
+                    productContainer.appendChild(cardDiv);
+                });
+
+                // Append the product container to the category section
+                categoryDiv.appendChild(productContainer);
+
+                // Append the entire category section to the main container
+                container.appendChild(categoryDiv);
+            }
         }
 
         // Load the inventory on page load
@@ -86,3 +129,4 @@
     </script>
 </body>
 </html>
+
